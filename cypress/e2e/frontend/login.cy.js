@@ -49,4 +49,36 @@ describe('Login', () => {
       cy.contains('h1', 'Serverest Store').should('be.visible');
     });
   });
+
+  it('should not log in with an incorrect password', () => {
+    const uniqueId = crypto.randomUUID();
+
+    const user = {
+      nome: 'Automation User',
+      email: `qa-${uniqueId}@example.com`,
+      password: 'Test123!',
+      administrador: 'false',
+    };
+
+    cy.request({
+      method: 'POST',
+      url: `${apiUrl}/usuarios`,
+      body: user,
+    }).then((registrationResponse) => {
+      createdUserId = registrationResponse.body._id;
+
+      expect(registrationResponse.status).to.equal(201);
+      expect(registrationResponse.body._id)
+        .to.be.a('string')
+        .and.not.be.empty;
+
+      loginPage.visit();
+      loginPage.login(user.email, 'WrongPassword123!');
+
+      cy.contains('[role="alert"]', 'Email e/ou senha inválidos')
+        .should('be.visible');
+
+      cy.location('pathname').should('eq', '/login');
+    });
+  });
 });
