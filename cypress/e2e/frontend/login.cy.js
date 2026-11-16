@@ -1,4 +1,5 @@
 const loginPage = require('../../pages/login.page.js');
+const buildUser = require('../../support/factories/user.factory.js');
 
 const apiUrl = 'https://serverest.dev';
 
@@ -21,14 +22,7 @@ describe('Login', () => {
   });
 
   it('should log in with valid credentials', () => {
-    const uniqueId = crypto.randomUUID();
-
-    const user = {
-      nome: 'Automation User',
-      email: `qa-${uniqueId}@example.com`,
-      password: 'Test123!',
-      administrador: 'false',
-    };
+    const user = buildUser();
 
     cy.request({
       method: 'POST',
@@ -51,14 +45,7 @@ describe('Login', () => {
   });
 
   it('should not log in with an incorrect password', () => {
-    const uniqueId = crypto.randomUUID();
-
-    const user = {
-      nome: 'Automation User',
-      email: `qa-${uniqueId}@example.com`,
-      password: 'Test123!',
-      administrador: 'false',
-    };
+    const user = buildUser();
 
     cy.request({
       method: 'POST',

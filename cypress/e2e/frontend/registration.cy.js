@@ -1,4 +1,5 @@
 const registrationPage = require('../../pages/registration.page.js');
+const buildUser = require('../../support/factories/user.factory.js');
 
 const apiUrl = 'https://serverest.dev';
 
@@ -21,14 +22,7 @@ describe('User registration', () => {
   });
 
   it('should register a user through the interface', () => {
-    const uniqueId = crypto.randomUUID();
-
-    const user = {
-      nome: 'Automation User',
-      email: `qa-${uniqueId}@example.com`,
-      password: 'Test123!',
-      administrador: 'false',
-    };
+    const user = buildUser();
 
     cy.intercept('POST', `${apiUrl}/usuarios`).as('registerUser');
 
