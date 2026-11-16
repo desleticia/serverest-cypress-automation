@@ -71,6 +71,18 @@ env -u ELECTRON_RUN_AS_NODE npm test
 
 The same prefix can be used with the other npm commands. No permanent environment change is required.
 
+## Continuous integration
+
+The [Cypress tests workflow](.github/workflows/cypress.yml) is configured to run on pushes to `main`, pull requests targeting `main`, and manual requests from the repository's **Actions** tab.
+
+The job uses an Ubuntu 24.04 GitHub-hosted runner with Chrome and sets up Node.js 24. It installs locked dependencies with `npm ci`, verifies the Cypress executable, and runs `npm test` to execute the six main scenarios. The job has a fifteen-minute timeout and uses the npm download cache.
+
+Review the step logs in [GitHub Actions](https://github.com/desleticia/serverest-cypress-automation/actions). When an execution fails and Cypress has generated screenshots, the workflow uploads them as the `cypress-screenshots` artifact, retained for seven days. An installation failure may occur before any screenshot exists.
+
+The BUG-001 reproduction remains separate and can be run with `npm run test:known-issues`. It is not part of the six main scenarios executed by this workflow.
+
+Check the Actions run for the commit under review to confirm the remote result. The local results below are separate evidence and do not establish the outcome of a GitHub-hosted run.
+
 ## Test coverage
 
 | Area | Scenario | Main assertions |
@@ -136,6 +148,7 @@ The duplicate-email API request uses `failOnStatusCode: false` to allow inspecti
 | `cypress/known-issues/` | Additional reproductions of documented application defects. |
 | `docs/bugs/` | Defect reports with reproduction steps, observed results and investigation evidence. |
 | `cypress.config.js` | Cypress configuration and frontend base URL. |
+| `.github/workflows/` | GitHub Actions configuration for the main suite. |
 
 ## Known issue: product registration
 
@@ -153,14 +166,16 @@ The report includes the payloads, the API control check and instructions for int
 
 ## Latest local validation
 
-Snapshot from **2026-11-16**, using Chrome 127:
+Observed local results using Chrome 127:
 
-| Command | Result |
-|---|---|
-| `npm test` | 6 passed. |
-| `npm run test:api` | 3 passed. |
-| `npm run test:e2e` | 3 passed. |
-| `npm run test:known-issues` | 1 failed: `expected 400 to equal 201`, reproducing BUG-001. |
+| Command | Latest result | Verified on |
+|---|---|---|
+| `npm test` | 6 passed. | 2026-11-17 |
+| `npm run test:api` | 3 passed. | 2026-11-16 |
+| `npm run test:e2e` | 3 passed. | 2026-11-16 |
+| `npm run test:known-issues` | 1 failed: `expected 400 to equal 201`, reproducing BUG-001. | 2026-11-16 |
+
+The Cypress executable verification also passed on 2026-11-17.
 
 These results describe the observed executions. The applications are public shared environments, so their availability, behavior and data may change.
 
