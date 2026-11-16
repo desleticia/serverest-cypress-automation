@@ -1,3 +1,5 @@
+const buildUser = require('../../support/factories/user.factory.js');
+
 const apiUrl = 'https://serverest.dev';
 
 describe('Users API', () => {
@@ -19,14 +21,7 @@ describe('Users API', () => {
   });
 
   it('should register a user successfully', () => {
-    const uniqueId = crypto.randomUUID();
-
-    const user = {
-      nome: 'Automation User',
-      email: `qa-${uniqueId}@example.com`,
-      password: 'Test123!',
-      administrador: 'false',
-    };
+    const user = buildUser();
 
     cy.request({
       method: 'POST',
@@ -45,14 +40,7 @@ describe('Users API', () => {
   });
 
   it('should reject user registration with a duplicate email', () => {
-    const uniqueId = crypto.randomUUID();
-
-    const user = {
-      nome: 'Automation User',
-      email: `qa-${uniqueId}@example.com`,
-      password: 'Test123!',
-      administrador: 'false',
-    };
+    const user = buildUser();
 
     cy.request({
       method: 'POST',
@@ -80,14 +68,7 @@ describe('Users API', () => {
   });
 
   it('should return the registered user when searching by ID', () => {
-    const uniqueId = crypto.randomUUID();
-
-    const user = {
-      nome: 'Automation User',
-      email: `qa-${uniqueId}@example.com`,
-      password: 'Test123!',
-      administrador: 'false',
-    };
+    const user = buildUser();
 
     cy.request({
       method: 'POST',

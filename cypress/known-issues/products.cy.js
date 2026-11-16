@@ -1,5 +1,6 @@
 const loginPage = require('../pages/login.page.js');
 const productsPage = require('../pages/products.page.js');
+const buildUser = require('../support/factories/user.factory.js');
 
 const apiUrl = 'https://serverest.dev';
 
@@ -40,12 +41,7 @@ describe('Products', () => {
   it('should allow an administrator to register a product', () => {
     const uniqueId = crypto.randomUUID();
 
-    const admin = {
-      nome: 'Automation Admin',
-      email: `admin-${uniqueId}@example.com`,
-      password: 'Test123!',
-      administrador: 'true',
-    };
+    const admin = buildUser('true');
 
     const product = {
       nome: `Keyboard ${uniqueId}`,
