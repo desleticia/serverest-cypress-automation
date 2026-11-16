@@ -5,7 +5,11 @@
   "main": "index.js",
   "scripts": {
     "cy:open": "cypress open",
-    "cy:run": "cypress run"
+    "cy:run": "cypress run --browser chrome",
+    "test": "npm run cy:run",
+    "test:api": "cypress run --browser chrome --spec \"cypress/e2e/api/**/*.cy.js\" --config baseUrl=https://serverest.dev",
+    "test:e2e": "cypress run --browser chrome --spec \"cypress/e2e/frontend/**/*.cy.js\"",
+    "test:known-issues": "cypress run --browser chrome --config \"specPattern=cypress/known-issues/**/*.cy.js\""
   },
   "keywords": [],
   "author": "",

@@ -1,5 +1,5 @@
-const loginPage = require('../../pages/login.page.js');
-const productsPage = require('../../pages/products.page.js');
+const loginPage = require('../pages/login.page.js');
+const productsPage = require('../pages/products.page.js');
 
 const apiUrl = 'https://serverest.dev';
 

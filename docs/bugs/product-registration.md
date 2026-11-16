@@ -1,50 +1,53 @@
-# BUG-001: Cadastro de produto pela interface rejeitado por tipos numéricos incompatíveis
+# BUG-001: Product registration through the UI fails because numeric fields are sent as strings
 
-- **Status:** reproduzido; correção não verificada.
-- **Data da observação:** 2026-11-15.
-- **Área:** integração entre o formulário de produtos e a API.
-- **Ambiente:** frontend público `https://front.serverest.dev` e API pública `https://serverest.dev`.
-- **Execução:** Ubuntu 24.04, Node.js 24.22.3, Cypress 16.3.0 e Chrome 127.
+- **Status:** reproduced; fix not verified.
+- **First observed:** 2026-11-15.
+- **Last automated reproduction:** 2026-11-16.
+- **Area:** integration between the product registration form and the API.
+- **Environment:** public frontend `https://front.serverest.dev` and public API `https://serverest.dev`.
+- **Test environment:** Ubuntu 24.04, Node.js 24.22.3, Cypress 16.3.0 and Chrome 127.
 
-## Resumo e impacto
+Payloads, response messages and quoted UI labels are preserved in their original language as evidence.
 
-Ao cadastrar um produto com preço `150` e quantidade `10` pela interface, a aplicação envia esses campos como strings no JSON. A API responde com status `400`, exigindo valores numéricos, e o redirecionamento para a listagem não ocorre na execução observada.
+## Summary and impact
 
-O problema impede a conclusão do fluxo de cadastro de produto pelo administrador nas condições reproduzidas.
+When registering a product through the UI with price `150` and quantity `10`, the application sends these fields as strings in the JSON payload. The API responds with status `400`, requiring numeric values, and the expected redirect to the product list does not occur in the observed execution.
 
-## Pré-condições
+This issue prevents the administrator from completing product registration under the reproduced conditions.
 
-- Administrador temporário criado pela API com `administrador: 'true'`.
-- Login realizado pela interface com as credenciais desse administrador.
-- Nome de produto gerado com UUID para reduzir conflitos com registros existentes.
+## Preconditions
 
-## Passos para reproduzir
+- A temporary administrator has been created through the API with `administrador: 'true'`.
+- The administrator has signed in through the UI.
+- The product name includes a generated UUID to reduce conflicts with existing records.
 
-1. Acessar `https://front.serverest.dev/login` e autenticar o administrador.
-2. Aguardar o acesso a `/admin/home`.
-3. Acessar `/admin/cadastrarprodutos`.
-4. Preencher os campos:
+## Steps to reproduce
 
-   | Campo | Valor |
+1. Open `https://front.serverest.dev/login` and sign in as the administrator.
+2. Wait for navigation to `/admin/home`.
+3. Open `/admin/cadastrarprodutos`.
+4. Fill in the fields:
+
+   | Field | Value |
    |---|---|
-   | Nome | `Keyboard <UUID gerado na execução>` |
-   | Preço | `150` |
-   | Descrição | `Keyboard for automated testing` |
-   | Quantidade | `10` |
-   | Imagem | Nenhum arquivo selecionado |
+   | Name | `Keyboard <UUID generated during execution>` |
+   | Price | `150` |
+   | Description | `Keyboard for automated testing` |
+   | Quantity | `10` |
+   | Image | No file selected |
 
-5. Clicar em **Cadastrar**.
-6. Inspecionar o corpo e a resposta da requisição `POST https://serverest.dev/produtos`.
+5. Click the register button, labeled **Cadastrar** in the UI.
+6. Inspect the request body and response for `POST https://serverest.dev/produtos`.
 
-## Resultado esperado
+## Expected result
 
-- Resposta `201` com mensagem de sucesso e ID do produto.
-- Redirecionamento para `/admin/listarprodutos`.
-- Produto apresentado na listagem com nome, preço, descrição e quantidade correspondentes aos dados informados.
+- Status `201` with a success message and the product ID.
+- Navigation to `/admin/listarprodutos`.
+- The product appears in the list with the same name, price, description and quantity entered in the form.
 
-## Resultado obtido e evidência da interface
+## Actual result and UI evidence
 
-A requisição observada na execução interativa enviou este corpo:
+The request observed during the interactive execution sent this body:
 
 ```json
 {
@@ -55,7 +58,7 @@ A requisição observada na execução interativa enviou este corpo:
 }
 ```
 
-A API respondeu com status `400` e o corpo:
+The API responded with status `400` and this body:
 
 ```json
 {
@@ -64,11 +67,11 @@ A API respondeu com status `400` e o corpo:
 }
 ```
 
-O navegador permaneceu em `/admin/cadastrarprodutos`. A falha foi reproduzida em duas execuções: uma no Chrome sem interface gráfica e outra na sessão interativa do Cypress, com dados próprios em cada execução.
+The API reports that price and quantity must be numbers. The browser remained on `/admin/cadastrarprodutos`. The initial investigation reproduced the failure twice: once in headless Chrome and once in an interactive Cypress session, using separate test data for each execution.
 
-## Verificação de controle pela API
+## Direct API control check
 
-Foi realizado um cadastro separado, com outro nome único e os mesmos valores de preço, descrição e quantidade. Nesse controle, preço e quantidade foram enviados como números:
+A separate product was submitted with another unique name and the same price, description and quantity. In this control check, price and quantity were sent as numbers:
 
 ```json
 {
@@ -79,7 +82,7 @@ Foi realizado um cadastro separado, com outro nome único e os mesmos valores de
 }
 ```
 
-Resultado: status `201` e corpo:
+Result: status `201` and this body:
 
 ```json
 {
@@ -88,42 +91,52 @@ Resultado: status `201` e corpo:
 }
 ```
 
-O produto e o administrador desse controle foram excluídos ao final. As duas exclusões retornaram status `200` e mensagem `Registro excluído com sucesso`.
+The product and administrator used in this control check were deleted afterward. Both deletions returned status `200` and the message `Registro excluído com sucesso` (record successfully deleted).
 
-## Análise
+## Analysis
 
-O contrato da API define `preco` e `quantidade` como inteiros. Os valores `150` e `10` foram aceitos no controle, enquanto as strings `"150"` e `"10"` enviadas pela interface foram rejeitadas.
+The API contract defines `preco` and `quantidade` as integers. The values `150` and `10` were accepted in the control check, while the strings `"150"` and `"10"` sent by the UI were rejected.
 
-Nos arquivos públicos consultados, o formulário usa os valores de `formData.price` e `formData.quantity`, e o serviço de produtos os repassa para a requisição sem conversão numérica explícita. A evidência aponta para uma incompatibilidade de tipos na integração do frontend com a API.
+In the public source files inspected, the form uses values from `formData.price` and `formData.quantity`, and the product service passes them to the request without an explicit numeric conversion. The evidence points to a type mismatch in the integration between the frontend and the API.
 
-A conversão com `String(...)` no Page Object representa o texto digitado no campo. A construção do JSON enviado ao servidor é feita pela aplicação. O teste usa `cy.intercept()` para observar essa requisição real e mantém a expectativa de status `201`.
+The `String(...)` conversion in the Page Object represents the text typed into the input. The application builds the JSON sent to the server. The test uses `cy.intercept()` to observe this real request and keeps status `201` as its expected result.
 
-**Correção sugerida:** validar e converter os valores numéricos no frontend antes de montar a requisição, respeitando o contrato da API.
+**Suggested fix:** validate and convert numeric values in the frontend before building the request, following the API contract.
 
-## Reprodução automatizada e limites da verificação
+## Automated reproduction and verification scope
 
-O cenário está em `cypress/e2e/frontend/products.cy.js`, com as ações de tela em `cypress/pages/products.page.js`.
+The scenario is in `cypress/known-issues/products.cy.js`, with UI interactions in `cypress/pages/products.page.js`.
+
+The main suite contains the six scenarios selected for delivery: three API scenarios and three frontend scenarios. This additional reproduction lives in `cypress/known-issues/` and has a separate execution command. It still expects successful registration with status `201`; while the issue persists, the command returns a failure.
 
 ```bash
-env -u ELECTRON_RUN_AS_NODE npm run cy:run -- \
-  --spec cypress/e2e/frontend/products.cy.js \
-  --browser chrome
+npm run test:known-issues
 ```
 
-Na condição observada, o resultado foi `0 passing` e `1 failing`, com a assertiva `expected 400 to equal 201`. As validações de redirecionamento e das células da listagem não foram alcançadas.
+If the terminal sets `ELECTRON_RUN_AS_NODE=1`, use `env -u ELECTRON_RUN_AS_NODE npm run test:known-issues` to start Cypress with that variable removed for this command only.
 
-A execução sem interface gráfica gerou a captura local:
+To observe the reproduction in the Cypress UI:
+
+```bash
+npm run cy:open -- --e2e --browser chrome --config "specPattern=cypress/known-issues/**/*.cy.js"
+```
+
+The initial investigation produced `0 passing` and `1 failing`, with the assertion `expected 400 to equal 201`. The redirect and product table assertions were not reached.
+
+During command verification on 2026-11-16, `npm test` passed all six main scenarios, `npm run test:api` passed the three API scenarios, and `npm run test:e2e` passed the three frontend scenarios. Separately, `npm run test:known-issues` found the scenario at its new location and reproduced `expected 400 to equal 201`, returning exit code `1`.
+
+The headless execution generated this local screenshot:
 
 ```text
 cypress/screenshots/products.cy.js/Products -- should allow an administrator to register a product (failed).png
 ```
 
-Essa captura corresponde à primeira execução e utiliza outro UUID. A pasta de screenshots é ignorada pelo Git; a imagem é um artefato local, regenerado ao reproduzir a falha, e não está incluída neste documento.
+Later executions with other UUIDs may overwrite the screenshot. The screenshots directory is ignored by Git; the image is a local artifact, regenerated when reproducing the failure, and is not included in this document.
 
-O controle direto na API foi uma investigação adicional, não um cenário de frontend aprovado como sucesso. A suíte completa ainda não foi executada após a inclusão deste cenário, pois sua execução isolada falhou. Nenhuma alteração foi aplicada ao frontend ou à API durante a investigação.
+The direct API control was an additional investigation, not a passing frontend scenario. The six main scenarios passed in a combined execution; this result excludes the BUG-001 reproduction. No changes were made to the frontend or API during the investigation.
 
-## Referências
+## References
 
-- [Contrato da API ServeRest](https://serverest.dev/swagger.json?lang=pt-BR)
-- [Código público do formulário de produtos](https://github.com/ServeRest/front/blob/main/src/views/admin/registerProducts.js)
-- [Código público do serviço de produtos](https://github.com/ServeRest/front/blob/main/src/services/products.js)
+- [ServeRest API contract](https://serverest.dev/swagger.json?lang=pt-BR)
+- [Public product registration form source](https://github.com/ServeRest/front/blob/main/src/views/admin/registerProducts.js)
+- [Public product service source](https://github.com/ServeRest/front/blob/main/src/services/products.js)
