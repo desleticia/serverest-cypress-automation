@@ -28,6 +28,7 @@ describe('Users API', () => {
       url: `${apiUrl}/usuarios`,
       body: user,
     }).then((response) => {
+      // Save the ID before assertions so cleanup can run if a later check fails.
       createdUserId = response.body._id;
 
       expect(response.status).to.equal(201);
@@ -58,6 +59,7 @@ describe('Users API', () => {
         method: 'POST',
         url: `${apiUrl}/usuarios`,
         body: user,
+        // Allow the expected error response so its status and message can be checked.
         failOnStatusCode: false,
       }).then((duplicateResponse) => {
         expect(duplicateResponse.status).to.equal(400);

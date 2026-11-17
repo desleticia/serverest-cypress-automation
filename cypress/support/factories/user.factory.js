@@ -1,3 +1,4 @@
+// ServeRest expects the administrator flag as a string: 'true' or 'false'.
 const buildUser = (administrator = 'false') => {
   return {
     nome: 'Automation User',

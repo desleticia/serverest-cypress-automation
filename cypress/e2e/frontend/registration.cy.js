@@ -24,6 +24,7 @@ describe('User registration', () => {
   it('should register a user through the interface', () => {
     const user = buildUser();
 
+    // Register the intercept before submission to avoid missing the request.
     cy.intercept('POST', `${apiUrl}/usuarios`).as('registerUser');
 
     registrationPage.visit();
@@ -41,6 +42,7 @@ describe('User registration', () => {
         .to.be.a('string')
         .and.not.be.empty;
 
+      // The application delays this redirect; allow extra time without a fixed wait.
       cy.location('pathname', { timeout: 10000 })
         .should('eq', '/home');
       cy.contains('h1', 'Serverest Store').should('be.visible');

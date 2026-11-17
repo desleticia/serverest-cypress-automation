@@ -79,6 +79,7 @@ describe('Products', () => {
         authorization = interception.request.headers.authorization;
         createdProductId = response.body._id;
 
+        // BUG-001: keep 201 as the expected result (docs/bugs/product-registration.md).
         expect(response.statusCode).to.equal(201);
         expect(response.body.message)
           .to.equal('Cadastro realizado com sucesso');

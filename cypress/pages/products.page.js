@@ -8,6 +8,7 @@ const productsPage = {
     cy.get('[data-testid="preco"]').type(String(product.preco));
     cy.get('[data-testid="descricao"]').type(product.descricao);
     cy.get('[data-testid="quantity"]').type(String(product.quantidade));
+    // The application uses 'cadastarProdutos' with this spelling.
     cy.get('[data-testid="cadastarProdutos"]').click();
   },
 

@@ -24,6 +24,7 @@ describe('Login', () => {
   it('should log in with valid credentials', () => {
     const user = buildUser();
 
+    // Create the user through the API to keep the UI steps focused on login.
     cy.request({
       method: 'POST',
       url: `${apiUrl}/usuarios`,
@@ -62,6 +63,7 @@ describe('Login', () => {
       loginPage.visit();
       loginPage.login(user.email, 'WrongPassword123!');
 
+      // Wait for the error before checking the URL, since the test starts on /login.
       cy.contains('[role="alert"]', 'Email e/ou senha inválidos')
         .should('be.visible');
 
